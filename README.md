@@ -1,13 +1,12 @@
-# Laravel E-commerce Project
+# Laravel Order Systeam Project
 
-This project is a Laravel-based e-commerce application that allows users to manage products, make orders, and process payments using Stripe.
+This project is a Laravel-based Order cycle application that allows users to manage products, make orders, and process payments using Stripe.
 
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [Testing](#testing)
+## Features
+- **Registration and Login**: Users can register and log in to their accounts.
+- **Order**: Users can Make orders .
+- **Payment**: Users can Payment with Stripe.
+
 
 
 ## Prerequisites
