@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Payment;
 use Exception;
 use Illuminate\Http\Request;
@@ -11,10 +12,11 @@ use Stripe\Webhook;
 
 class PaymentController extends Controller
 {
-    public function showPaymentForm()
-    {
-        return view('payment');
-    }
+    public function showPaymentForm($orderId)
+{
+    $order = Order::findOrFail($orderId);
+    return view('payment', compact('order'));
+}
 
 public function processPayment(Request $request)
 {
