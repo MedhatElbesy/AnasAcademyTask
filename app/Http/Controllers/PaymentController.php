@@ -6,48 +6,54 @@ use App\Models\Order;
 use App\Models\Payment;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Stripe\Stripe;
 use Stripe\Charge;
 use Stripe\Webhook;
+use Throwable;
 
 class PaymentController extends Controller
 {
-    public function showPaymentForm($orderId)
-{
-    $order = Order::findOrFail($orderId);
-    return view('payment', compact('order'));
-}
-
-public function processPayment(Request $request)
-{
-    $this->validate($request, [
-        'stripeToken' => 'required',
-        'order_id' => 'required|exists:orders,id',
-    ]);
-
-    Stripe::setApiKey(config('services.stripe.secret'));
-
-    try {
-        $charge = Charge::create([
-            'amount'      => 1000,
-            'currency'    => 'usd',
-            'source'      => $request->stripeToken,
-            'description' => 'Payment for Order ' . $request->order_id,
-        ]);
-
-        Payment::create([
-            'order_id'          => $request->order_id,
-            'stripe_charge_id'  => $charge->id,
-            'amount'            => $charge->amount / 100,
-            'currency'          => $charge->currency,
-            'status'            => $charge->status,
-        ]);
-
-        return redirect()->route('payment.success')->with('success', 'Payment successful!');
-    } catch (Exception $e) {
-        return redirect()->back()->with('error', $e->getMessage());
+    public function showPaymentForm(Order $order)
+    {
+    return view('stripe', compact('order'));
     }
-}
+
+
+    public function stripePost(Request $request)
+    {
+        $request->validate([
+            'order_id'    => 'required|exists:orders,id',
+            'stripeToken' => 'required',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        try {
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            $charge = Charge::create([
+                'amount'      => $order->total_price * 100,
+                'currency'    => 'usd',
+                'source'      => $request->stripeToken,
+                'description' => 'Payment for order ' . $order->id,
+            ]);
+
+            Payment::create([
+                'order_id'         => $order->id,
+                'stripe_charge_id' => $charge->id,
+                'amount'           => $charge->amount,
+                'currency'         => $charge->currency,
+                'status'           => $charge->status,
+            ]);
+
+            Session::flash('success', 'Payment successful');
+            return back();
+            } catch (Throwable $e) {
+                Session::flash('success', 'Payment failed. Please try again');
+                return back();
+        }
+    }
 
 
 
@@ -71,11 +77,11 @@ public function processPayment(Request $request)
                 $paymentIntent = $event->data->object;
 
                 Payment::create([
-                    'order_id' => $paymentIntent->metadata->order_id,
+                    'order_id'         => $paymentIntent->metadata->order_id,
                     'stripe_charge_id' => $paymentIntent->id,
-                    'amount' => $paymentIntent->amount / 100,
-                    'currency' => $paymentIntent->currency,
-                    'status' => $paymentIntent->status,
+                    'amount'           => $paymentIntent->amount / 100,
+                    'currency'         => $paymentIntent->currency,
+                    'status'           => $paymentIntent->status,
                 ]);
                 break;
 

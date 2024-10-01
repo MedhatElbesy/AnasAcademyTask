@@ -10,25 +10,40 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
+use Throwable;
 
 class ProductController extends Controller
 {
     public function getProductsAbovePrice($price)
     {
         $products = Product::where('price', '>', $price)->get();
-        return ApiResponse::sendResponse(200, 'Product fetched successfully', new ProductResource($products));
-
+        if($products){
+            return ApiResponse::sendResponse(200, 'Products fetched successfully', ProductResource::collection($products));
+        }
+        return ApiResponse::sendResponse(404,'Can`t Find');
     }
+
     public function index()
     {
-        $products = Product::all()->paginate(10);
-        return ApiResponse::sendResponse(200, 'Products fetched successfully', ProductResource::collection($products));
+        $products = Product::paginate(10);
+        if($products){
+            return ApiResponse::sendResponse(200, 'Products fetched successfully', ProductResource::collection($products));
+        }
+            return ApiResponse::sendResponse(404,'No Products');
     }
     public function store(StoreProductRequest $request)
     {
-        $product = Product::create($request->validated());
-        return ApiResponse::sendResponse(201, 'Product created successfully', new ProductResource($product));
+        try {
+            $userId = auth()->id();
+            $data = array_merge($request->validated(), ['user_id' => $userId]);
+            $product = Product::create($data);
+
+            return ApiResponse::sendResponse(201, 'Product created successfully', new ProductResource($product));
+        } catch (Throwable $th) {
+            return ApiResponse::sendResponse(404, 'Fail to Create Product');
+        }
     }
+
 
     public function update(UpdateProductRequest $request, $id)
     {
@@ -48,7 +63,7 @@ class ProductController extends Controller
             $product = Product::findOrFail($id);
             $this->authorize('delete', $product);
             $product->delete();
-            return ApiResponse::sendResponse(200, 'Product deleted successfully', null);
+            return ApiResponse::sendResponse(200, 'Product deleted successfully');
         } catch (Exception $e) {
             return ApiResponse::sendResponse(500, 'An error occurred while deleting the product: ' . $e->getMessage(), null);
         }

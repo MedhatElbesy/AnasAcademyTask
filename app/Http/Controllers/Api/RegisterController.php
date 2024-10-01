@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+// use App\Helpers\ApiResponse;
+
+// use App\Helpers\ApiResponse;
+
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
@@ -20,7 +24,6 @@ class RegisterController extends Controller
         $user = User::create($data);
 
         $user->token = $user->createToken('Api Token')->plainTextToken;
-
         return ApiResponse::sendResponse(201, "Created Successfully", new UserResource($user));
     }
 }

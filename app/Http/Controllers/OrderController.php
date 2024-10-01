@@ -8,13 +8,9 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Payment;
-use App\Models\Product;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Stripe\Charge;
-use Stripe\Stripe;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -41,55 +37,40 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request)
     {
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+
+            $totalPrice = collect($request->order_items)->sum(function ($item) {
+                return $item['price'] * $item['quantity'];
+            });
+
             $order = Order::create([
                 'user_id' => auth()->id(),
-                'total_price' => 0
+                'total_price' => $totalPrice,
             ]);
 
-            $totalPrice = 0;
-            foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $orderItem = OrderItem::create([
-                    'order_id' => $order->id,
+            $orderItemsData = collect($request->order_items)->map(function ($item) use ($order) {
+                return [
+                    'order_id'   => $order->id,
                     'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $product->price * $item['quantity']
-                ]);
-                $totalPrice += $orderItem->price;
-            }
+                    'quantity'   => $item['quantity'],
+                    'price'      => $item['price'],
+                ];
+            })->toArray();
 
-            $order->update(['total_price' => $totalPrice]);
-
-            Stripe::setApiKey(config('services.stripe.secret'));
-
-            $charge = Charge::create([
-                'amount' => $totalPrice * 100, // Stripe accepts the amount in cents
-                'currency' => 'usd',
-                'source' => $request->stripeToken,
-                'description' => 'Payment for Order ' . $order->id,
-            ]);
-
-            Payment::create([
-                'order_id'          => $order->id,
-                'stripe_charge_id'  => $charge->id,
-                'amount'            => $charge->amount / 100,
-                'currency'          => $charge->currency,
-                'status'            => $charge->status,
-            ]);
+            OrderItem::insert($orderItemsData);
 
             DB::commit();
+            return redirect()->route('payment.success', ['order' => $order]);
 
-            return ApiResponse::sendResponse(201, 'Order created and payment successful', new OrderResource($order->load('orderItems.product')));
+            // return ApiResponse::sendResponse(201, 'Order created successfully', new OrderResource($order));
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             DB::rollBack();
-            return ApiResponse::sendResponse(500, 'An error occurred while creating the order or processing payment: ' . $e->getMessage(), null);
+
+            return ApiResponse::sendResponse(500, 'Failed to create order. Please try again later.');
         }
     }
-
-
 
 
 

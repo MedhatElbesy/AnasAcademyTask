@@ -22,14 +22,14 @@ class ProductController extends Controller
     }
 
     public function store(StoreProductRequest $request)
-{
-    $product = Product::create($request->validated());
+    {
+        $product = Product::create($request->validated());
 
-    if ($request->ajax()) {
-        return ApiResponse::sendResponse(200,'Product added successfully.',$product->load('category'));
+        if ($request->ajax()) {
+            return ApiResponse::sendResponse(200,'Product added successfully.',$product->load('category'));
+        }
+
+        return redirect()->route('products.index')->with('success', 'Product added successfully.');
     }
-
-    return redirect()->route('products.index')->with('success', 'Product added successfully.');
-}
 
 }

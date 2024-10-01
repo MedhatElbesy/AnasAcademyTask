@@ -13,7 +13,7 @@ class ProductTest extends TestCase
 
     public function test_can_create_product()
     {
-        $category = Category::create(['name' => 'Electronics']);
+        $category = category::create(['name' => 'Electronicss']);
 
         $response = $this->post('/api/products', [
             'name'        => 'Laptop',

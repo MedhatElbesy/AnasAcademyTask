@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
