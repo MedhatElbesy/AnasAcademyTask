@@ -48,7 +48,6 @@ class OrderController extends Controller
                 'user_id' => auth()->id(),
                 'total_price' => $totalPrice,
             ]);
-
             $orderItemsData = collect($request->order_items)->map(function ($item) use ($order) {
                 return [
                     'order_id'   => $order->id,
@@ -58,10 +57,11 @@ class OrderController extends Controller
                 ];
             })->toArray();
 
+            // dd($orderItemsData);
             OrderItem::insert($orderItemsData);
 
             DB::commit();
-            return redirect()->route('payment.success', ['order' => $order]);
+            return redirect()->route('payment.form', ['order' => $order]);
 
             // return ApiResponse::sendResponse(201, 'Order created successfully', new OrderResource($order));
 

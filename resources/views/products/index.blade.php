@@ -3,6 +3,10 @@
 @section('title', 'Product List')
 
 @section('content')
+<h2>Add Product</h2>
+        <div class="mb-4 form-container">
+            @include('products._form')
+        </div>
     <div class="container mt-4">
         <h1>Product List</h1>
 
@@ -24,38 +28,101 @@
             </div>
         @endif
 
-
-
-        <h2>Products</h2>
-        <table class="table table-striped table-bordered table-hover" id="productTable">
-            <thead class="thead-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Category</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($products as $product)
+        <div class="table-container">
+            <table class="table table-striped table-bordered table-hover" id="productTable">
+                <thead class="thead-dark">
                     <tr>
-                        <td>{{ $product->id }}</td>
-                        <td>{{ $product->name }}</td>
-                        <td>${{ number_format($product->price, 2) }}</td>
-                        <td>{{ $product->quantity }}</td>
-                        <td>{{ $product->category->name ?? 'N/A' }}</td>
-
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Category</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <div class="mb-4">
-            <h2>Add Product</h2>
-            @include('products._form')
+                </thead>
+                <tbody>
+                    @foreach($products as $product)
+                        <tr>
+                            <td>{{ $product->id }}</td>
+                            <td>{{ $product->name }}</td>
+                            <td>${{ number_format($product->price, 2) }}</td>
+                            <td>{{ $product->quantity }}</td>
+                            <td>{{ $product->category->name ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <style>
+        .table-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #productTable {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #productTable thead {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+
+        #productTable tbody tr {
+            transition: background-color 0.3s;
+        }
+
+        #productTable tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #productTable td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .form-container {
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            width: 100%;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #343a40;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn {
+            border-radius: 4px;
+            padding: 10px 15px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
